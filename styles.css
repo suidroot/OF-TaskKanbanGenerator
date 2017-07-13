@@ -1,0 +1,137 @@
+html * {
+  margin: 0;
+  padding: 0; }
+
+@font-face {
+  font-family: "Typicons";
+  src: url("/typicons-regular-webfont.woff") format("woff"); }
+
+html {
+  font-family: Helvetica;
+  font-size: 12px;
+  line-height: 18px; }
+
+body {
+    width: 1200px;
+    margin: 36px auto;
+    background: url("/bg.png") repeat; }
+
+  .width-1 {
+    width: 285px; }
+
+  .width-2 {
+    width: 580px; }
+    .width-2 .project {
+      width: 286px; }
+      .width-2 .project.expanded {
+        width: 141px; }
+
+section {
+  float: left;
+  margin-right: 10px;
+  margin-left: 10px; }
+  section:first-child {
+    margin-left: 0; }
+  section:last-child {
+    margin-right: 0; }
+
+h1, h2, h3 {
+  color: #333;
+  line-height: 36px; }
+
+h4 {
+  color: #333; }
+
+h1 {
+  font-size: 29px;
+  text-align: right;
+  border-bottom: 3px solid #555;
+  margin-bottom: 18px; }
+  h1 img {
+    display: inline;
+    vertical-align: middle;
+    height: 29px; }
+
+h2 {
+  font-size: 23px;
+  border-bottom: 2px solid #555; }
+
+h3 {
+  font-size: 17px; }
+
+h4 {
+  font-size: 11px; }
+  h4 a {
+    text-decoration: underline;
+    color: inherit; }
+
+.project {
+  position: relative;
+  float: left;
+  box-shadow: 2px 2px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  border: 2px solid #555555;
+  border-radius: 5px;
+  margin: 2px;
+  padding: 1px;
+  width: 281px; }
+  .project.expanded {
+    width: 281px;
+    min-height: 88.07169px; }
+  .project.background {
+    opacity: 0.8; }
+  .project:hover {
+    box-shadow: none;
+    border-color: #333;
+    opacity: 1; }
+  .project .desc {
+    font-size: 10px; }
+  .project .hanging {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    height: 10px;
+    width: 10px;
+    background-image: url("hanging.png");
+    width: 14px; }
+  .project .deferred {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    height: 10px;
+    width: 10px;
+    border-top: 3px solid red;
+    background-color: white;
+    padding: 0 1px;
+    font: 9px Helvetica;
+    text-align: center;
+    box-shadow: 2px 2px rgba(0, 0, 0, 0.1); }
+  .project .waiting-on {
+    position: absolute;
+    right: 3px;
+    bottom: 3px;
+    height: 10px;
+    width: 10px;
+    background-image: url("waiting.png");
+    height: 11px; }
+
+.clear {
+  clear: both; }
+
+.danger {
+  color: red; }
+
+.nodanger {
+  color: green; }
+
+.refresh {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  font-family: "Entypo";
+  font-size: 32px;
+  padding: 4px; }
+
+.hero {
+  font-size: 150%;
+  margin: 1rem 3rem; }
