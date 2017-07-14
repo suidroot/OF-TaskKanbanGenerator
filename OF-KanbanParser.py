@@ -1,15 +1,8 @@
-#!#!/usr/bin/which python
-# Omnifocus Task Based Kanban Generator v1.0
-#
-# Author:
-# Version:
-#
+#!/usr/bin/which python
+''' Omnifocus Task Based Kanban Generator v1.0 '''
 
-# from __future__ import print_function
 import csv
 import datetime
-import argparse
-from webbrowser import open_new_tab
 from time import strptime, mktime, strftime
 
 __author__ = "Ben Mason"
@@ -18,46 +11,28 @@ __version__ = "0.0.1"
 __email__ = "locutus@the-collective.net"
 __status__ = "Development"
 
-FILENAME = "test.csv"
+FILENAME = "of-tasks.csv"
 HTMLOUTPUTFILE = "kanban.html"
 TASKURL = "omnifocus:///task/"
-IGNORELIST = ["Hold / Future", "Dropped", "Hold", "Future / Hold", "Shopping Lists", "Education", "Electronics Projects", "Home Routine", "Template"]
-COMPLETEFILTER=-7
-DEFERFILTER=3
-
-
-def initargs():
-
-    """ initialize variables with command-line arguments """
-    parser = argparse.ArgumentParser(description='input -f [file]')
-    parser.add_argument('-e', '--enable', \
-        help='Option with input', \
-        default='')
-    parser.add_argument('-t', '--true', \
-        help='True false', \
-        action='store_true')
-
-    arg = parser.parse_args()
-
-    return arg
-
-# def openwebpage:
-#
-#     filename = 'file:///Users/username/Desktop/programming-historian/' + filename
-#
-#     open_new_tab(filename)
+IGNORELIST = ["Hold / Future", "Dropped", "Hold", "Future / Hold", \
+"Shopping Lists", "Education", "Electronics Projects", "Home Routine", \
+"Template"]
+COMPLETEFILTER = -7
+DEFERFILTER = 3
 
 
 def parsetime(datestring):
+    ''' Parse Text date into time format '''
     # Tuesday, April 25, 2017 at 22:48:42
     if datestring == "missing value":
-        return None
+        returnval = None
     else:
-        return strptime(datestring , "%A, %B %d, %Y at %H:%M:%S")
+        returnval = strptime(datestring, "%A, %B %d, %Y at %H:%M:%S")
 
+    return returnval
 
 def parsetask(csvdata):
-
+    ''' Parse CSV formated task data into a dictionary '''
     task = {}
     # print csvdata
     if 'id' not in csvdata[0]:
@@ -96,11 +71,13 @@ def parsetask(csvdata):
 
         task['completedate'] = parsetime(csvdata[14])
 
-# id	Task Name	In Inbox	Flagged	Context Container	Context	Project	Defer Date	Due Date	Prj Status	Prj Blocked	Prj id	Project Complete	Completion Date
+# id	Task Name	In Inbox	Flagged	Context Container	Context	Project
+# Defer Date	Due Date	Prj Status	Prj Blocked	Prj id	Project Complete
+# Completion Date
     return task
 
 def loadcsvfile(filename):
-
+    ''' Read CSV file and parse the contents '''
     tasklist = []
     try:
         with open(filename, 'rU') as filehandle:
@@ -112,29 +89,33 @@ def loadcsvfile(filename):
                     if taskdict != {}:
                         tasklist.append(parsetask(row))
             except csv.Error as theerror:
-                print "file {0}, line {1}: {2}: {3}".format(filename, reader.line_num, \
+                print "file {0}, line {1}: {2}: {3}".format(filename, \
+                reader.line_num, \
                      theerror, row)
     except IOError as openerror:
-        print "Coule not open {0}, returned error {1}".format(filename, openerror)
+        print "Coule not open {0}, returned error {1}".format(filename, \
+        openerror)
 
     return tasklist
 
 def createmapping(taskdata):
-
+    ''' Map the Task information into a list of Context discrionaries
+        to be parsed into Kanban output
+    '''
     today = datetime.date.today()
     kanbanmapping = {}
     kanbanmapping['complete'] = []
     kanbanmapping['inbox'] = []
 
     def appendtasktomapping(task):
+        ''' Parse out relavent task information for presentation '''
 
-        kbtaskinfo = { 'taskid' : task['taskid'],
-            'tasktext' : task['tasktext'],
-            'deferdate' : task['deferdate'],
-            'duedate' : task['duedate'],
-            'flagged' : task['flagged'],
-            'project' : task['project'],
-        }
+        kbtaskinfo = {'taskid' : task['taskid'],
+                      'tasktext' : task['tasktext'],
+                      'deferdate' : task['deferdate'],
+                      'duedate' : task['duedate'],
+                      'flagged' : task['flagged'],
+                      'project' : task['project']}
 
         return kbtaskinfo
 
@@ -145,22 +126,25 @@ def createmapping(taskdata):
             pass
         elif task['projectcontainer'] in IGNORELIST:
             pass
-        elif task['projectstatus'] == "on hold" or task['projectstatus'] == 'dropped':
+        elif task['projectstatus'] == "on hold" or \
+        task['projectstatus'] == 'dropped':
             pass
-        elif task['complete'] == True:
-            if datetime.date.fromtimestamp(mktime(task['completedate'])) - today > datetime.timedelta(days=int(COMPLETEFILTER)):
+        elif task['complete']:
+            if datetime.date.fromtimestamp(mktime(task['completedate'])) - \
+            today > datetime.timedelta(days=int(COMPLETEFILTER)):
                 kanbanmapping['complete'].append(appendtasktomapping(task))
-        elif task['inbox'] == True:
-                kanbanmapping['inbox'].append(appendtasktomapping(task))
+        elif task['inbox']:
+            kanbanmapping['inbox'].append(appendtasktomapping(task))
         else:
 
-            if task['deferdate'] == None:
+            if task['deferdate'] is None:
                 try:
                     kanbanmapping[task['context']].append(appendtasktomapping(task))
                 except KeyError:
                     kanbanmapping[task['context']] = []
                     kanbanmapping[task['context']].append(appendtasktomapping(task))
-            elif datetime.date.fromtimestamp(mktime(task['deferdate'])) - today < datetime.timedelta(days=int(DEFERFILTER)):
+            elif datetime.date.fromtimestamp(mktime(task['deferdate'])) - \
+            today < datetime.timedelta(days=int(DEFERFILTER)):
                 try:
                     kanbanmapping[task['context']].append(appendtasktomapping(task))
                 except KeyError:
@@ -171,7 +155,7 @@ def createmapping(taskdata):
     return kanbanmapping
 
 def createhtmlheader():
-
+    ''' Build HTML header infomration '''
     browsertitle = "Task Kanban"
     pagetitle = "Task Kanban"
 
@@ -195,8 +179,8 @@ def createhtmlheader():
     return htmldata
 
 def createcontexthtml(context, contexttasks):
-
-    htmloutput =["""<section class='width-1' id='context'>
+    ''' Output HTML formated information for given context information '''
+    htmloutput = ["""<section class='width-1' id='context'>
 <h2>
 </h2><div class='parent'>
 <h3 class='parent-title'>{0}</h3>""".format(context)]
@@ -224,11 +208,13 @@ def createcontexthtml(context, contexttasks):
             desc = ""
             desc = desc + "Project: " + task['project'] + "\n"
             if task['deferdate'] != None:
-                desc = desc + "<br>Defer: " + strftime("%m/%d/%y", task['deferdate']) + "\n"
+                desc = desc + "<br>Defer: " + strftime("%m/%d/%y", \
+                task['deferdate']) + "\n"
             if task['duedate'] != None:
-                desc = desc + "<br>Due: " + strftime("%m/%d/%y", task['duedate']) + "\n"
+                desc = desc + "<br>Due: " + strftime("%m/%d/%y", \
+                task['duedate']) + "\n"
 
-            if task['flagged'] == True:
+            if task['flagged']:
                 color = "background-color:hsl(0,100%,80%)"
             else:
                 color = "background-color:hsl(120,100%,80%)"
@@ -254,14 +240,14 @@ def createcontexthtml(context, contexttasks):
 
 
 def createhtmlfooter():
-
+    ''' Output HTML footer '''
     htmloutput = """  </body>
     </html>"""
 
     return htmloutput
 
 def buildhtmlfile(kanbanmap):
-
+    ''' Assemble all HTML output '''
     htmloutput = []
 
     htmloutput.append(createhtmlheader())
@@ -281,13 +267,14 @@ def buildhtmlfile(kanbanmap):
     return '\n'.join(htmloutput)
 
 def writehtmlfile(htmldata):
-
+    ''' Write HTML file to disk '''
     with open(HTMLOUTPUTFILE, 'w') as filehandle:
         for line in htmldata:
             filehandle.write(line)
 
 
 def main():
+    ''' Main Loop '''
     tasklist = loadcsvfile(FILENAME)
     # print tasklist
     kanbanmap = createmapping(tasklist)
@@ -298,6 +285,5 @@ def main():
 
 
 if __name__ == "__main__":
-    args = initargs()
-    kanbanmap = main()
+    main()
     # print kanbanmap.keys()
