@@ -21,9 +21,9 @@ __status__ = "Development"
 FILENAME = "test.csv"
 HTMLOUTPUTFILE = "kanban.html"
 TASKURL = "omnifocus:///task/"
-IGNORELIST = ["Hold / Future", "Dropped", "Hold", "Future / Hold", "Shopping Lists"]
+IGNORELIST = ["Hold / Future", "Dropped", "Hold", "Future / Hold", "Shopping Lists", "Education", "Electronics Projects", "Home Routine", "Template"]
 COMPLETEFILTER=-7
-DEFERFILTER=7
+DEFERFILTER=3
 
 
 def initargs():
@@ -76,24 +76,25 @@ def parsetask(csvdata):
 
         task['contextcontainer'] = csvdata[4]
         task['context'] = csvdata[5]
-        task['project'] = csvdata[6]
-        task['deferdate'] = parsetime(csvdata[7])
-        task['duedate'] = parsetime(csvdata[8])
-        task['projectstatus'] = csvdata[9]
+        task['projectcontainer'] = csvdata[6]
+        task['project'] = csvdata[7]
+        task['deferdate'] = parsetime(csvdata[8])
+        task['duedate'] = parsetime(csvdata[9])
+        task['projectstatus'] = csvdata[10]
 
-        if csvdata[10] == "false":
+        if csvdata[11] == "false":
             task['projectblocked'] = False
         else:
             task['projectblocked'] = True
 
-        task['projectid'] = csvdata[11]
+        task['projectid'] = csvdata[12]
 
-        if csvdata[12] == "false":
+        if csvdata[13] == "false":
             task['complete'] = False
         else:
             task['complete'] = True
 
-        task['completedate'] = parsetime(csvdata[13])
+        task['completedate'] = parsetime(csvdata[14])
 
 # id	Task Name	In Inbox	Flagged	Context Container	Context	Project	Defer Date	Due Date	Prj Status	Prj Blocked	Prj id	Project Complete	Completion Date
     return task
@@ -132,6 +133,7 @@ def createmapping(taskdata):
             'deferdate' : task['deferdate'],
             'duedate' : task['duedate'],
             'flagged' : task['flagged'],
+            'project' : task['project'],
         }
 
         return kbtaskinfo
@@ -140,6 +142,10 @@ def createmapping(taskdata):
         # print task
         # add to completed list
         if task['context'] in IGNORELIST:
+            pass
+        elif task['projectcontainer'] in IGNORELIST:
+            pass
+        elif task['projectstatus'] == "on hold" or task['projectstatus'] == 'dropped':
             pass
         elif task['complete'] == True:
             if datetime.date.fromtimestamp(mktime(task['completedate'])) - today > datetime.timedelta(days=int(COMPLETEFILTER)):
@@ -196,16 +202,16 @@ def createcontexthtml(context, contexttasks):
 <h3 class='parent-title'>{0}</h3>""".format(context)]
 
     # htmloutput.append(htmlscratch)
-
+    contexttasks.sort()
     for task in contexttasks:
-        if context == "complete":
+        if context == "Complete":
             # completed
             htmlscratch = """<div class='done project' style='background-color:hsl(240,100%,80%)'>
     <h4>
-    <a href='{0}'>{1}</a>
+    <a href='{0}{1}'>{2}</a>
     </h4>
-    </div></div>
-    """.format(task['tasktext'], task['tasktext'])
+    </div>
+    """.format(TASKURL, task['taskid'], task['tasktext'])
 
         else:
             # active
@@ -216,27 +222,29 @@ def createcontexthtml(context, contexttasks):
             # 'flagged' : task['flagged'],
 
             desc = ""
+            desc = desc + "Project: " + task['project'] + "\n"
             if task['deferdate'] != None:
-                desc = desc + "Defer: " + strftime("%m/%d/%y", task['deferdate']) + "\n"
+                desc = desc + "<br>Defer: " + strftime("%m/%d/%y", task['deferdate']) + "\n"
             if task['duedate'] != None:
-                desc = desc + "Due: " + strftime("%m/%d/%y", task['duedate']) + "\n"
+                desc = desc + "<br>Due: " + strftime("%m/%d/%y", task['duedate']) + "\n"
 
             if task['flagged'] == True:
                 color = "background-color:hsl(0,100%,80%)"
             else:
                 color = "background-color:hsl(120,100%,80%)"
 
-            htmlscratch = """<div class='active expanded project' style='{3}'>
+            htmlscratch = """<div class='active expanded project' style='{4}'>
     <h4>
-    <a href='{0}'>{1}</a>
+    <a href='{0}{1}'>{2}</a>
     </h4>
     <div class='desc'>
-    {2}
+    {3}
     </div>
-    </div></div>""".format(task['tasktext'], task['tasktext'], desc, color)
+    </div>""".format(TASKURL, task['taskid'], task['tasktext'], desc, color)
 
         htmloutput.append(htmlscratch)
-
+        # End Loop
+    # Add footer
     htmlscratch = """<div class='clear'></div>
             </div>
           </section>"""
@@ -258,8 +266,15 @@ def buildhtmlfile(kanbanmap):
 
     htmloutput.append(createhtmlheader())
 
-    for context in kanbanmap.keys():
-        htmloutput.append(createcontexthtml(context, kanbanmap[context]))
+    kanbanmapkeys = kanbanmap.keys()
+    kanbanmapkeys.sort()
+    htmloutput.append(createcontexthtml('Inbox', kanbanmap['inbox']))
+    for context in kanbanmapkeys:
+        if context == 'inbox' or context == 'complete':
+            pass
+        else:
+            htmloutput.append(createcontexthtml(context, kanbanmap[context]))
+    htmloutput.append(createcontexthtml('Complete', kanbanmap['complete']))
 
     htmloutput.append(createhtmlfooter())
 
@@ -285,4 +300,4 @@ def main():
 if __name__ == "__main__":
     args = initargs()
     kanbanmap = main()
-    print kanbanmap.keys()
+    # print kanbanmap.keys()
