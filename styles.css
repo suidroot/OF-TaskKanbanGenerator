@@ -12,17 +12,17 @@ html {
   line-height: 18px; }
 
 body {
-    width: 4000px;
+    width: 2210px;
     margin: 36px auto;
     background: url("/bg.png") repeat; }
 
   .width-1 {
-    width: 285px; }
+    width: 202px; }
 
   .width-2 {
     width: 580px; }
     .width-2 .project {
-      width: 286px; }
+      width: 206px; }
       .width-2 .project.expanded {
         width: 141px; }
 
@@ -74,9 +74,9 @@ h4 {
   border-radius: 5px;
   margin: 2px;
   padding: 1px;
-  width: 281px; }
+  width: 201px; }
   .project.expanded {
-    width: 281px;
+    width: 201px;
     min-height: 88.07169px; }
   .project.background {
     opacity: 0.8; }

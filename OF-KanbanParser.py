@@ -16,9 +16,9 @@ HTMLOUTPUTFILE = "kanban.html"
 TASKURL = "omnifocus:///task/"
 IGNORELIST = ["Hold / Future", "Dropped", "Hold", "Future / Hold", \
 "Shopping Lists", "Education", "Electronics Projects", "Home Routine", \
-"Template"]
+"Template", "HouseHold"]
 COMPLETEFILTER = -7
-DEFERFILTER = 3
+DEFERFILTER = 1
 
 
 def parsetime(datestring):
@@ -57,19 +57,32 @@ def parsetask(csvdata):
         task['duedate'] = parsetime(csvdata[9])
         task['projectstatus'] = csvdata[10]
 
-        if csvdata[11] == "false":
-            task['projectblocked'] = False
-        else:
-            task['projectblocked'] = True
-
-        task['projectid'] = csvdata[12]
+        # completed by children (always true)
+        task['children'] = int(csvdata[12])
 
         if csvdata[13] == "false":
+            task['blocked'] = False
+        else:
+            task['blocked'] = True
+
+        if csvdata[14] == "false":
+            task['next'] = False
+        else:
+            task['next'] = True
+
+        if csvdata[15] == "false":
+            task['sequential'] = False
+        else:
+            task['sequential'] = True
+
+        task['projectid'] = csvdata[14]
+        # PRJ ID 16
+        if csvdata[17] == "false":
             task['complete'] = False
         else:
             task['complete'] = True
 
-        task['completedate'] = parsetime(csvdata[14])
+        task['completedate'] = parsetime(csvdata[18])
 
 # id	Task Name	In Inbox	Flagged	Context Container	Context	Project
 # Defer Date	Due Date	Prj Status	Prj Blocked	Prj id	Project Complete
@@ -129,13 +142,22 @@ def createmapping(taskdata):
         elif task['projectstatus'] == "on hold" or \
         task['projectstatus'] == 'dropped':
             pass
+        elif task['children'] > 0:
+            pass
         elif task['complete']:
             if datetime.date.fromtimestamp(mktime(task['completedate'])) - \
             today > datetime.timedelta(days=int(COMPLETEFILTER)):
                 kanbanmapping['complete'].append(appendtasktomapping(task))
         elif task['inbox']:
             kanbanmapping['inbox'].append(appendtasktomapping(task))
+        elif task['blocked'] == True:
+            pass
         else:
+
+            # if task['next'] == False:
+            #     pass
+            # if task['blocked'] == False:
+            #     pass
 
             if task['deferdate'] is None:
                 try:
@@ -188,7 +210,7 @@ def createcontexthtml(context, contexttasks):
     # htmloutput.append(htmlscratch)
     contexttasks.sort()
     for task in contexttasks:
-        if context == "Complete":
+        if context == "complete":
             # completed
             htmlscratch = """<div class='done project' style='background-color:hsl(240,100%,80%)'>
     <h4>
@@ -249,18 +271,33 @@ def createhtmlfooter():
 def buildhtmlfile(kanbanmap):
     ''' Assemble all HTML output '''
     htmloutput = []
+    firstcontext = ['inbox']
+    lastcontext = ['Colab Jen Munz', 'Backlog', 'Research', 'complete']
+    manualcontext = firstcontext + lastcontext
+    # manualcontext = ['inbox', 'complete', 'Backlog', 'Research']
+
 
     htmloutput.append(createhtmlheader())
 
     kanbanmapkeys = kanbanmap.keys()
     kanbanmapkeys.sort()
-    htmloutput.append(createcontexthtml('Inbox', kanbanmap['inbox']))
+
+    if kanbanmap['inbox'] != []:
+        htmloutput.append(createcontexthtml('Inbox', kanbanmap['inbox']))
+
     for context in kanbanmapkeys:
-        if context == 'inbox' or context == 'complete':
+        if context in manualcontext:
             pass
         else:
             htmloutput.append(createcontexthtml(context, kanbanmap[context]))
-    htmloutput.append(createcontexthtml('Complete', kanbanmap['complete']))
+
+    for item in lastcontext:
+        if item in kanbanmapkeys:
+            htmloutput.append(createcontexthtml(item, kanbanmap[item]))
+
+    # htmloutput.append(createcontexthtml('Backlog', kanbanmap['Backlog']))
+    # htmloutput.append(createcontexthtml('Research', kanbanmap['Research']))
+    # htmloutput.append(createcontexthtml('Complete', kanbanmap['complete']))
 
     htmloutput.append(createhtmlfooter())
 
@@ -282,6 +319,7 @@ def main():
     writehtmlfile(htmloutput)
 
     return kanbanmap
+    print "Done!"
 
 
 if __name__ == "__main__":
