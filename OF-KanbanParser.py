@@ -12,7 +12,7 @@ __email__ = "locutus@the-collective.net"
 __status__ = "Development"
 
 FILENAME = "of-tasks.csv"
-HTMLOUTPUTFILE = "kanban.html"
+HTMLOUTPUTFILE = "/Users/benmason/Documents/taskkanban.html"
 TASKURL = "omnifocus:///task/"
 IGNORELIST = ["Hold / Future", "Dropped", "Hold", "Future / Hold", \
 "Shopping Lists", "Education", "Electronics Projects", "Home Routine", \
