@@ -1,4 +1,4 @@
-#!/usr/bin/which python
+#!/usr/bin/which python3
 ''' Omnifocus Task Based Kanban Generator v1.0 '''
 
 import csv
@@ -16,7 +16,7 @@ HTMLOUTPUTFILE = "/Users/benmason/Documents/taskkanban.html"
 TASKURL = "omnifocus:///task/"
 IGNORELIST = ["Hold / Future", "Dropped", "Hold", "Future / Hold", \
 "Shopping Lists", "Education", "Electronics Projects", "Home Routine", \
-"Template", "HouseHold"]
+"Template", "HouseHold", "Back Burner", "Home"]
 COMPLETEFILTER = -7
 DEFERFILTER = 1
 
@@ -102,11 +102,11 @@ def loadcsvfile(filename):
                     if taskdict != {}:
                         tasklist.append(parsetask(row))
             except csv.Error as theerror:
-                print "file {0}, line {1}: {2}: {3}".format(filename, \
+                print ("file {0}, line {1}: {2}: {3}").format(filename, \
                 reader.line_num, \
                      theerror, row)
     except IOError as openerror:
-        print "Coule not open {0}, returned error {1}".format(filename, \
+        print ("Could not open {0}, returned error {1}").format(filename, \
         openerror)
 
     return tasklist
@@ -318,8 +318,9 @@ def main():
     htmloutput = buildhtmlfile(kanbanmap)
     writehtmlfile(htmloutput)
 
+    print ("Done!")
+
     return kanbanmap
-    print "Done!"
 
 
 if __name__ == "__main__":
